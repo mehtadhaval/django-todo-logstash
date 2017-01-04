@@ -51,6 +51,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'todo.middleware.RequestIdMiddleware',
+    'crum.CurrentRequestUserMiddleware',
 ]
 
 ROOT_URLCONF = 'todo.urls'
@@ -137,3 +139,59 @@ REST_FRAMEWORK = {
 }
 
 APPEND_SLASH=False
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'logstash': {
+            '()': 'todo.logstash.LogStashFilter'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'level': 'DEBUG'
+        },
+        'logstash': {
+            'level': 'DEBUG',
+            'class': 'logstash.handler_tcp.TCPLogstashHandler',
+            'host': 'localhost',
+            'port': 5000,
+            'version': 1,
+            'message_type': 'todo',
+            'fqdn': True,
+            'tags': ['todo'],
+            'filters': ['logstash']
+        }
+    },
+    'loggers': {
+        'todo.logging': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False
+        },
+        'todo': {
+            'handlers': ['console', 'logstash'],
+            'level': 'DEBUG',
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+        'django.db': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,  # Don't propogate these logs to the top level 'django' logger
+        }
+    }
+}
