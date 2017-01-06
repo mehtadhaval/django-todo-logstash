@@ -1,0 +1,31 @@
+############################# Filebeat ######################################
+filebeat:
+  prospectors:
+    -
+      paths:
+        - /var/log/nginx/todo-access.log
+      encoding: plain
+      input_type: log
+      document_type: todo-nginx
+    -
+      paths:
+        - /var/log/nginx/access-log-*.log
+      encoding: plain
+      input_type: log
+      document_type: strive-nginx
+  registry_file: /var/lib/filebeat/registry
+output:
+  logstash:
+    hosts: ["localhost:5044"]
+
+shipper:
+# under all other system per default to syslog.
+logging:
+  to_syslog: true
+  to_files: true
+  files:
+    path: /var/log/filebeat
+    name: todo-beat.log
+    rotateeverybytes: 10485760 # = 10MB
+    keepfiles: 7
+  level: warning

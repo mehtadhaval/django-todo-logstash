@@ -168,7 +168,7 @@ LOGGING = {
             'host': 'localhost',
             'port': 5000,
             'version': 1,
-            'message_type': 'todo',
+            'message_type': 'todo-app',
             'fqdn': True,
             'tags': ['todo'],
             'filters': ['logstash']
