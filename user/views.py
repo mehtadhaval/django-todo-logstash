@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import list_route
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -23,8 +24,13 @@ class UserActionsViewSet(viewsets.ViewSet):
 
     @list_route(methods=['post'])
     def register(self, request):
+        logger.debug("Validating user", extra={"event_type": "USER_REGISTER_VALIDATION"})
         serializer = UserRegistrationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except ValidationError as e:
+            logger.warn("User validation failed", extra={"event_type": "USER_REGISTER_FAILED", "error": serializer.errors})
+            raise e
         user = serializer.save()
         logger.info("New user registration", extra={"event_type": "USER_REGISTER", "user_id": user.id})
         return Response(self._create_user_token(user))
